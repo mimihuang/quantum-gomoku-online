@@ -7,9 +7,13 @@
 </head>
 <body>
     <div id="container">
+        <div id="room-setup">
+            <input type="text" id="room-key" placeholder="Enter Room Key">
+            <button onclick="joinRoom()">Join Room</button>
+        </div>
         <div id="game"></div>
-        <div id="controls">
-            <h2 id="player-turn">Now Playing: Player A</h2> <!-- 👈 新增提示 -->
+        <div id="controls" style="display: none;">
+            <h2 id="player-turn">Now Playing: Player A</h2>
             <div class="button-group" id="buttons-a">
                 <button onclick="selectState('0')" class="button-a">|0⟩</button>
                 <button onclick="selectState('+')" class="button-a">|+⟩</button>

@@ -5,84 +5,98 @@ const io = require('socket.io')(http);
 
 app.use(express.static('public'));
 
-let players = 0;
-let board = Array(15).fill(null).map(() => Array(15).fill(null));
-let turn = 0;
+const rooms = {}; // 用來存所有房間資料
 
 io.on('connection', (socket) => {
-    if (players >= 2) {
-        socket.emit('full');
-        socket.disconnect();
-        return;
-    }
+    socket.on('joinRoom', (roomKey) => {
+        socket.roomKey = roomKey;
 
-    socket.playerId = players;
-    players++;
-
-    socket.emit('playerId', { id: socket.playerId, turn: turn });
-    io.emit('updateBoard', { board: board, turn: turn });
-
-    socket.on('move', ({ i, j, state }) => {
-        if (board[i][j] === null) {
-            board[i][j] = {
-                owner: socket.playerId,
-                state: mapState(state),
-                measured: false,
-                color: null
+        if (!rooms[roomKey]) {
+            rooms[roomKey] = {
+                players: [],
+                board: Array(15).fill(null).map(() => Array(15).fill(null)),
+                turn: 0
             };
-            turn = 1 - turn;
-            io.emit('updateBoard', { board: board, turn: turn });
         }
-    });
 
-    socket.on('measure', (basis) => {
-        for (let i = 0; i < 15; i++) {
-            for (let j = 0; j < 15; j++) {
-                const stone = board[i][j];
-                if (stone && !stone.measured) {
-                    if (basis === 'standard') {
-                        if (stone.state === '+' || stone.state === '-') {
-                            stone.state = Math.random() < 0.5 ? '0' : '1';
-                        }
-                    } else if (basis === 'hadamard') {
-                        if (stone.state === '0' || stone.state === '1') {
-                            stone.state = Math.random() < 0.5 ? '+' : '-';
-                        }
-                    }
+        const room = rooms[roomKey];
 
-                    if (stone.state === '0' || stone.state === '+') {
-                        stone.color = 'black';
-                    } else {
-                        stone.color = 'white';
+        if (room.players.length >= 2) {
+            socket.emit('full');
+            return;
+        }
+
+        socket.playerId = room.players.length;
+        room.players.push(socket.id);
+
+        socket.join(roomKey);
+
+        socket.emit('playerId', { id: socket.playerId, turn: room.turn });
+        io.to(roomKey).emit('updateBoard', { board: room.board, turn: room.turn });
+
+        socket.on('move', ({ i, j, state }) => {
+            if (room.board[i][j] === null) {
+                room.board[i][j] = {
+                    owner: socket.playerId,
+                    state: mapState(state),
+                    measured: false,
+                    color: null
+                };
+                room.turn = 1 - room.turn;
+                io.to(roomKey).emit('updateBoard', { board: room.board, turn: room.turn });
+            }
+        });
+
+        socket.on('measure', (basis) => {
+            for (let i = 0; i < 15; i++) {
+                for (let j = 0; j < 15; j++) {
+                    const stone = room.board[i][j];
+                    if (stone && !stone.measured) {
+                        if (basis === 'standard') {
+                            if (stone.state === '+' || stone.state === '-') {
+                                stone.state = Math.random() < 0.5 ? '0' : '1';
+                            }
+                        } else if (basis === 'hadamard') {
+                            if (stone.state === '0' || stone.state === '1') {
+                                stone.state = Math.random() < 0.5 ? '+' : '-';
+                            }
+                        }
+
+                        if (stone.state === '0' || stone.state === '+') {
+                            stone.color = 'black';
+                        } else {
+                            stone.color = 'white';
+                        }
+                        stone.measured = true;
                     }
-                    stone.measured = true;
                 }
             }
-        }
 
-        turn = 1 - turn;
+            room.turn = 1 - room.turn;
 
-        const winnerColor = checkWin(board);
-        if (winnerColor) {
-            io.emit('win', { winner: winnerColor });
-        }
+            const winnerColor = checkWin(room.board);
+            if (winnerColor) {
+                io.to(roomKey).emit('win', { winner: winnerColor });
+            }
 
-        io.emit('updateBoard', { board: board, turn: turn });
-    });
+            io.to(roomKey).emit('updateBoard', { board: room.board, turn: room.turn });
+        });
 
-    socket.on('restart', () => {
-        board = Array(15).fill(null).map(() => Array(15).fill(null));
-        turn = 0;
-        io.emit('restart');
-        io.emit('updateBoard', { board: board, turn: turn });
-    });
+        socket.on('restart', () => {
+            room.board = Array(15).fill(null).map(() => Array(15).fill(null));
+            room.turn = 0;
+            io.to(roomKey).emit('restart');
+            io.to(roomKey).emit('updateBoard', { board: room.board, turn: room.turn });
+        });
 
-    socket.on('disconnect', () => {
-        players--;
-        if (players <= 0) {
-            board = Array(15).fill(null).map(() => Array(15).fill(null));
-            turn = 0;
-        }
+        socket.on('disconnect', () => {
+            if (rooms[roomKey]) {
+                room.players = room.players.filter(id => id !== socket.id);
+                if (room.players.length === 0) {
+                    delete rooms[roomKey];
+                }
+            }
+        });
     });
 });
 
@@ -96,10 +110,7 @@ function mapState(state) {
 
 function checkWin(board) {
     const directions = [
-        [0, 1],  // right
-        [1, 0],  // down
-        [1, 1],  // right+down
-        [1, -1], // left+down
+        [0, 1], [1, 0], [1, 1], [1, -1]
     ];
 
     for (let i = 0; i < 15; i++) {
@@ -114,7 +125,7 @@ function checkWin(board) {
                 while (x >= 0 && x < 15 && y >= 0 && y < 15 && board[x][y] && board[x][y].color === stone.color) {
                     count++;
                     if (count === 5) {
-                        return stone.color; // 5 in a row
+                        return stone.color;
                     }
                     x += dx;
                     y += dy;
