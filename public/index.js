@@ -6,14 +6,14 @@ let selectedState = '|0>';
 let moveMadeThisTurn = false;
 let firstMove = false;
 
-// Set up canvas immediately when page loads
+// Set up the canvas immediately
 const canvas = document.createElement('canvas');
 canvas.width = 560;
 canvas.height = 560;
 document.getElementById('game').appendChild(canvas);
 const ctx = canvas.getContext('2d');
 
-// Draw the empty board
+// Draw the board and stones
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#f0d9b5';
@@ -49,10 +49,10 @@ function draw() {
     }
 }
 
-// Draw board immediately
+// Draw an empty board immediately
 draw();
 
-// Join room and start listening for game events
+// Join a room with shared key
 function joinRoom() {
     const roomKey = document.getElementById('room-key').value.trim();
     if (!roomKey) {
@@ -106,7 +106,7 @@ function joinRoom() {
     });
 }
 
-// Handle clicking on the board
+// Handle clicks on the board
 canvas.addEventListener('click', (e) => {
     if (!socket || playerId !== turn || moveMadeThisTurn) return;
 
@@ -131,7 +131,7 @@ canvas.addEventListener('click', (e) => {
     }
 });
 
-// Select a quantum state
+// Select quantum state
 function selectState(state) {
     if (!socket || playerId !== turn || moveMadeThisTurn) return;
     selectedState = state;
@@ -149,13 +149,13 @@ function restart() {
     socket.emit('restart');
 }
 
-// Update the turn display
+// Update the current player's turn display
 function updatePlayerTurnDisplay() {
     const display = document.getElementById('player-turn');
     display.innerText = (turn === 0) ? 'Now Playing: Player A' : 'Now Playing: Player B';
 }
 
-// Show win overlay
+// Show a win animation
 function showWinAnimation(winnerColor) {
     const overlay = document.createElement('div');
     overlay.id = 'win-overlay';
@@ -182,7 +182,7 @@ function showWinAnimation(winnerColor) {
     });
 }
 
-// Remove win overlay
+// Remove the win overlay
 function removeWinOverlay() {
     const existingOverlay = document.getElementById('win-overlay');
     if (existingOverlay) {
