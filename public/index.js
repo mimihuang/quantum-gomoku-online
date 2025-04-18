@@ -37,16 +37,31 @@ function draw() {
             const stone = board[i][j];
             if (stone) {
                 let color = stone.color || (stone.owner === 0 ? 'black' : 'white');
+                
+                // If stone is measured, draw thicker dark brown border
+                if (stone.measured) {
+                    ctx.beginPath();
+                    ctx.arc(j * 40, i * 40, 12, 0, 2 * Math.PI);
+                    ctx.strokeStyle = '#5c4033'; // deep brown
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                // Draw the stone itself
                 ctx.beginPath();
                 ctx.arc(j * 40, i * 40, 10, 0, 2 * Math.PI);
                 ctx.fillStyle = color;
                 ctx.fill();
+
+                // Draw the label
                 ctx.fillStyle = (color === 'black') ? 'white' : 'black';
                 ctx.font = '14px Arial';
                 ctx.fillText(stone.state, j * 40 - 6, i * 40 + 5);
             }
         }
     }
+
+    ctx.lineWidth = 1; // Reset line width
 }
 
 // Draw an empty board immediately
@@ -104,11 +119,16 @@ function joinRoom() {
     socket.on('full', () => {
         alert('Room is full! Please use another key.');
     });
+
+    socket.on('disconnect', () => {
+        alert('Disconnected from server.');
+        location.reload();
+    });
 }
 
 // Handle clicks on the board
 canvas.addEventListener('click', (e) => {
-    if (!socket || playerId !== turn || moveMadeThisTurn) return;
+    if (!socket || !socket.connected || playerId !== turn || moveMadeThisTurn) return;
 
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -133,13 +153,13 @@ canvas.addEventListener('click', (e) => {
 
 // Select quantum state
 function selectState(state) {
-    if (!socket || playerId !== turn || moveMadeThisTurn) return;
+    if (!socket || !socket.connected || playerId !== turn || moveMadeThisTurn) return;
     selectedState = state;
 }
 
 // Measure the board
 function measure(basis) {
-    if (!socket || playerId !== turn || moveMadeThisTurn) return;
+    if (!socket || !socket.connected || playerId !== turn || moveMadeThisTurn) return;
     socket.emit('measure', basis);
     moveMadeThisTurn = true;
 }
