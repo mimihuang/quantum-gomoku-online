@@ -2,6 +2,9 @@
 
 **Play here:** [https://quantum-gomoku-online.onrender.com](https://quantum-gomoku-online.onrender.com)
 
+## Shared Key Instruction
+  Two players must enter the same shared key to join the same game room.
+
 ## Game Rules
 
 - **Two Players**:  
