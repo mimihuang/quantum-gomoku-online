@@ -5,7 +5,7 @@ const io = require('socket.io')(http);
 
 app.use(express.static('public'));
 
-const rooms = {}; // 用來存所有房間資料
+const rooms = {}; // Manage all rooms separately
 
 io.on('connection', (socket) => {
     socket.on('joinRoom', (roomKey) => {
@@ -136,6 +136,8 @@ function checkWin(board) {
     return null;
 }
 
-http.listen(3000, () => {
-    console.log('Server running at http://localhost:3000');
+// Use dynamic PORT for Render deployment
+const PORT = process.env.PORT || 3000;
+http.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });

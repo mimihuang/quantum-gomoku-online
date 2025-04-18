@@ -6,13 +6,14 @@ let selectedState = '|0>';
 let moveMadeThisTurn = false;
 let firstMove = false;
 
+// Set up canvas
 const canvas = document.createElement('canvas');
 canvas.width = 560;
 canvas.height = 560;
 document.getElementById('game').appendChild(canvas);
 const ctx = canvas.getContext('2d');
 
-// join room
+// Join a room with shared key
 function joinRoom() {
     const roomKey = document.getElementById('room-key').value.trim();
     if (!roomKey) {
@@ -31,6 +32,12 @@ function joinRoom() {
         document.getElementById('room-setup').style.display = 'none';
         document.getElementById('controls').style.display = 'flex';
 
+        if (playerId === 1) {
+            document.getElementById('waiting').style.display = 'none';
+        } else {
+            document.getElementById('waiting').style.display = 'block';
+        }
+
         setTimeout(() => {
             alert(playerId === 0 ? 'You are Player A (black)' : 'You are Player B (white)');
             updatePlayerTurnDisplay();
@@ -43,6 +50,7 @@ function joinRoom() {
         turn = data.turn;
         moveMadeThisTurn = false;
         updatePlayerTurnDisplay();
+        document.getElementById('waiting').style.display = 'none';
         draw();
     });
 
@@ -65,7 +73,7 @@ function joinRoom() {
     });
 }
 
-// draw board
+// Draw the chessboard and stones
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#f0d9b5';
@@ -101,7 +109,7 @@ function draw() {
     }
 }
 
-// click board
+// Handle clicking on the board
 canvas.addEventListener('click', (e) => {
     if (!socket || playerId !== turn || moveMadeThisTurn) return;
 
@@ -126,31 +134,31 @@ canvas.addEventListener('click', (e) => {
     }
 });
 
-// choose quantum states
+// Select a quantum state
 function selectState(state) {
     if (!socket || playerId !== turn || moveMadeThisTurn) return;
     selectedState = state;
 }
 
-// measure
+// Measure the board
 function measure(basis) {
     if (!socket || playerId !== turn || moveMadeThisTurn) return;
     socket.emit('measure', basis);
     moveMadeThisTurn = true;
 }
 
-// restart
+// Restart the game
 function restart() {
     socket.emit('restart');
 }
 
-// player's turn
+// Update the displayed current player's turn
 function updatePlayerTurnDisplay() {
     const display = document.getElementById('player-turn');
     display.innerText = (turn === 0) ? 'Now Playing: Player A' : 'Now Playing: Player B';
 }
 
-// animation
+// Show win animation overlay
 function showWinAnimation(winnerColor) {
     const overlay = document.createElement('div');
     overlay.id = 'win-overlay';
@@ -177,7 +185,7 @@ function showWinAnimation(winnerColor) {
     });
 }
 
-// remove animation
+// Remove win animation overlay
 function removeWinOverlay() {
     const existingOverlay = document.getElementById('win-overlay');
     if (existingOverlay) {
@@ -185,5 +193,5 @@ function removeWinOverlay() {
     }
 }
 
-// 🚀 draw board at the very begining
+// Draw board immediately when page loads
 draw();
