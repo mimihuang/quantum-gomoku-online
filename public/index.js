@@ -6,74 +6,14 @@ let selectedState = '|0>';
 let moveMadeThisTurn = false;
 let firstMove = false;
 
-// Set up canvas
+// Set up canvas immediately when page loads
 const canvas = document.createElement('canvas');
 canvas.width = 560;
 canvas.height = 560;
 document.getElementById('game').appendChild(canvas);
 const ctx = canvas.getContext('2d');
 
-// Join a room with shared key
-function joinRoom() {
-    const roomKey = document.getElementById('room-key').value.trim();
-    if (!roomKey) {
-        alert("Please enter a room key!");
-        return;
-    }
-
-    socket = io();
-    socket.emit('joinRoom', roomKey);
-
-    socket.on('playerId', (data) => {
-        playerId = data.id;
-        turn = data.turn;
-        if (playerId === 0) firstMove = true;
-
-        document.getElementById('room-setup').style.display = 'none';
-        document.getElementById('controls').style.display = 'flex';
-
-        if (playerId === 1) {
-            document.getElementById('waiting').style.display = 'none';
-        } else {
-            document.getElementById('waiting').style.display = 'block';
-        }
-
-        setTimeout(() => {
-            alert(playerId === 0 ? 'You are Player A (black)' : 'You are Player B (white)');
-            updatePlayerTurnDisplay();
-            draw();
-        }, 100);
-    });
-
-    socket.on('updateBoard', (data) => {
-        board = data.board;
-        turn = data.turn;
-        moveMadeThisTurn = false;
-        updatePlayerTurnDisplay();
-        document.getElementById('waiting').style.display = 'none';
-        draw();
-    });
-
-    socket.on('restart', () => {
-        board = Array(15).fill(null).map(() => Array(15).fill(null));
-        turn = 0;
-        moveMadeThisTurn = false;
-        firstMove = (playerId === 0);
-        removeWinOverlay();
-        updatePlayerTurnDisplay();
-        draw();
-    });
-
-    socket.on('win', (data) => {
-        showWinAnimation(data.winner);
-    });
-
-    socket.on('full', () => {
-        alert('Room is full! Please use another key.');
-    });
-}
-
-// Draw the chessboard and stones
+// Draw the empty board
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#f0d9b5';
@@ -107,6 +47,63 @@ function draw() {
             }
         }
     }
+}
+
+// Draw board immediately
+draw();
+
+// Join room and start listening for game events
+function joinRoom() {
+    const roomKey = document.getElementById('room-key').value.trim();
+    if (!roomKey) {
+        alert("Please enter a room key!");
+        return;
+    }
+
+    socket = io();
+    socket.emit('joinRoom', roomKey);
+
+    socket.on('playerId', (data) => {
+        playerId = data.id;
+        turn = data.turn;
+        if (playerId === 0) firstMove = true;
+
+        document.getElementById('room-setup').style.display = 'none';
+        document.getElementById('controls').style.display = 'flex';
+        document.getElementById('waiting').style.display = 'block';
+
+        setTimeout(() => {
+            alert(playerId === 0 ? 'You are Player A (black)' : 'You are Player B (white)');
+            updatePlayerTurnDisplay();
+        }, 100);
+    });
+
+    socket.on('updateBoard', (data) => {
+        board = data.board;
+        turn = data.turn;
+        moveMadeThisTurn = false;
+        updatePlayerTurnDisplay();
+        document.getElementById('waiting').style.display = 'none';
+        draw();
+    });
+
+    socket.on('restart', () => {
+        board = Array(15).fill(null).map(() => Array(15).fill(null));
+        turn = 0;
+        moveMadeThisTurn = false;
+        firstMove = (playerId === 0);
+        removeWinOverlay();
+        updatePlayerTurnDisplay();
+        draw();
+    });
+
+    socket.on('win', (data) => {
+        showWinAnimation(data.winner);
+    });
+
+    socket.on('full', () => {
+        alert('Room is full! Please use another key.');
+    });
 }
 
 // Handle clicking on the board
@@ -152,13 +149,13 @@ function restart() {
     socket.emit('restart');
 }
 
-// Update the displayed current player's turn
+// Update the turn display
 function updatePlayerTurnDisplay() {
     const display = document.getElementById('player-turn');
     display.innerText = (turn === 0) ? 'Now Playing: Player A' : 'Now Playing: Player B';
 }
 
-// Show win animation overlay
+// Show win overlay
 function showWinAnimation(winnerColor) {
     const overlay = document.createElement('div');
     overlay.id = 'win-overlay';
@@ -185,13 +182,10 @@ function showWinAnimation(winnerColor) {
     });
 }
 
-// Remove win animation overlay
+// Remove win overlay
 function removeWinOverlay() {
     const existingOverlay = document.getElementById('win-overlay');
     if (existingOverlay) {
         existingOverlay.remove();
     }
 }
-
-// Draw board immediately when page loads
-draw();
