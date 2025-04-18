@@ -1,0 +1,68 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f0f0f0;
+}
+
+#container {
+    display: flex;
+    align-items: flex-start;
+}
+
+#game {
+    margin-right: 40px;
+}
+
+#controls {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.button-a {
+    background-color: black;
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.button-b {
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.button-measure {
+    background-color: #cccccc;
+    color: black;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.button-restart {
+    background-color: #aaaaaa;
+    color: black;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

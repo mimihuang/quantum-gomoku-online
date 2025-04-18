@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quantum Gomoku Online</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <div id="game"></div>
+        <div id="controls">
+            <h2 id="player-turn">Now Playing: Player A</h2> <!-- 👈 新增提示 -->
+            <div class="button-group" id="buttons-a">
+                <button onclick="selectState('0')" class="button-a">|0⟩</button>
+                <button onclick="selectState('+')" class="button-a">|+⟩</button>
+            </div>
+            <div class="button-group" id="buttons-b">
+                <button onclick="selectState('1')" class="button-b">|1⟩</button>
+                <button onclick="selectState('-')" class="button-b">|-⟩</button>
+            </div>
+            <div class="button-group">
+                <button onclick="measure('standard')" class="button-measure">Measure Standard Basis</button>
+                <button onclick="measure('hadamard')" class="button-measure">Measure Hadamard Basis</button>
+            </div>
+            <div class="button-group">
+                <button onclick="restart()" class="button-restart">Restart Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="index.js"></script>
+</body>
+</html>
