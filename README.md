@@ -2,8 +2,6 @@
 
 **Play here:** [https://quantum-gomoku-online.onrender.com](https://quantum-gomoku-online.onrender.com)
 
-Game Designer: Er-Cheng Tang and Miryam Huang
-
 ## Shared Key Instruction
   Two players must enter the same shared key to join the same game room.
 
@@ -53,3 +51,4 @@ Game Designer: Er-Cheng Tang and Miryam Huang
 
 <img width="910" alt="image" src="https://github.com/user-attachments/assets/ba41393d-41f9-4729-be15-dbb9f17d46d8" />
 
+Game Designers: Er-Cheng Tang and Miryam Huang
